@@ -12,6 +12,7 @@ This resources provides a system that allows players to plant, harvest, and proc
 <details>
     <summary>ox_inventory example</summary>
 
+    ### data/items.lua
     ```lua
         ["weedplant_seedf"] = {
             label = "Female Weed Seed",
