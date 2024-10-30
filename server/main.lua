@@ -149,7 +149,7 @@ lib.callback.register('citra_weed:server:packageBranch', function(source, slot)
 end)
 
 RegisterNetEvent('citra_weed:server:plant', function(coords, item)
-    local src = source
+    local src = source --[[ @as integer ]]
     if #(GetEntityCoords(GetPlayerPed(src)) - coords.xyz) > 10.0 then return end
     exports.ox_inventory:RemoveItem(src, config.potItem, 1)
     local plant = {
@@ -172,7 +172,7 @@ RegisterNetEvent('citra_weed:server:plant', function(coords, item)
 end)
 
 RegisterNetEvent('citra_weed:server:harvest', function(id)
-    local src = source
+    local src = source --[[ @as integer ]]
     local plant = getPlantById(id)
     if not plant or #(GetEntityCoords(GetPlayerPed(src)) - plant.coords.xyz) > 6.0 or plant.percentage < 100 then return end
     local item = plant.gender == 0 and config.branchItem or config.seedItems.female
@@ -198,7 +198,7 @@ RegisterNetEvent('citra_weed:server:harvest', function(id)
 end)
 
 RegisterNetEvent('citra_weed:server:burn', function(id)
-    local src = source
+    local src = source --[[ @as integer ]]
     local plant = getPlantById(id)
     if not plant or #(GetEntityCoords(GetPlayerPed(src)) - plant.coords.xyz) > 6.0 then return end
     if exports.ox_inventory:GetItemCount(src, config.lighterItem) < 1 then
@@ -213,7 +213,7 @@ RegisterNetEvent('citra_weed:server:burn', function(id)
 end)
 
 RegisterNetEvent('citra_weed:server:feed', function(id)
-    local src = source
+    local src = source --[[ @as integer ]]
     local plant = getPlantById(id)
     if not plant or #(GetEntityCoords(GetPlayerPed(src)) - plant.coords.xyz) > 6.0 or not exports.ox_inventory:RemoveItem(src, config.foodItem, 1) then return end
     plant.food = 100
@@ -221,7 +221,7 @@ RegisterNetEvent('citra_weed:server:feed', function(id)
 end)
 
 RegisterNetEvent('citra_weed:server:water', function(id)
-    local src = source
+    local src = source --[[ @as integer ]]
     local plant = getPlantById(id)
     if not plant or #(GetEntityCoords(GetPlayerPed(src)) - plant.coords.xyz) > 6.0 or not exports.ox_inventory:RemoveItem(src, config.waterItem, 1) then return end
     plant.water = 100
@@ -229,7 +229,7 @@ RegisterNetEvent('citra_weed:server:water', function(id)
 end)
 
 RegisterNetEvent('citra_weed:server:deploy', function(coords)
-    local src = source
+    local src = source --[[ @as integer ]]
     if #(GetEntityCoords(GetPlayerPed(src)) - coords.xyz) > 6.0 then return end
     local entity = CreateObject('v_club_rack', coords.x, coords.y, coords.z, true, true, false)
     while not DoesEntityExist(entity) do Wait(10) end
@@ -246,7 +246,7 @@ RegisterNetEvent('citra_weed:server:deploy', function(coords)
 end)
 
 RegisterNetEvent('citra_weed:server:removeRack', function(netId)
-    local src = source
+    local src = source --[[ @as integer ]]
     local status = getRackByNetId(netId)
     local entity = NetworkGetEntityFromNetworkId(netId)
     if not status or #(GetEntityCoords(GetPlayerPed(src)) - GetEntityCoords(entity)) > 6.0 then return end
@@ -271,10 +271,10 @@ RegisterNetEvent('citra_weed:server:removeRack', function(netId)
 end)
 
 RegisterNetEvent('citra_weed:server:addBranch', function(netId, ind, slot)
-    local src = source
+    local src = source --[[ @as integer ]]
     local entity = NetworkGetEntityFromNetworkId(netId)
     local status = getRackByNetId(netId)
-    if not entity or status?.branches?[index] or #(GetEntityCoords(GetPlayerPed(src)) - GetEntityCoords(entity)) > 6.0 then return end
+    if not entity or status?.branches?[ind] or #(GetEntityCoords(GetPlayerPed(src)) - GetEntityCoords(entity)) > 6.0 then return end
     local item = exports.ox_inventory:GetSlot(src, slot)
     if not item or item.name ~= config.branchItem then
         bridge.framework:notify(src, {
@@ -300,7 +300,7 @@ RegisterNetEvent('citra_weed:server:addBranch', function(netId, ind, slot)
 end)
 
 RegisterNetEvent('citra_weed:server:removeBranch', function(netId, ind)
-    local src = source
+    local src = source --[[ @as integer ]]
     local entity = NetworkGetEntityFromNetworkId(netId)
     local status = getRackByNetId(netId)
     if not entity or not status?.branches?[ind] or #(GetEntityCoords(GetPlayerPed(src)) - GetEntityCoords(entity)) > 6.0 then return end
