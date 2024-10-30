@@ -355,6 +355,7 @@ CreateThread(function()
                 plants[i].model = newModel
             end
             Entity(NetworkGetEntityFromNetworkId(plants[i].netId)).state:set('citra_weed_data', plants[i], true)
+            db.save(plants[i])
             ::next::
         end
     end
