@@ -34,6 +34,24 @@ local function spawnPlant(plant)
     end)
 end
 
+local function spawnRack(coords)
+    local entity = CreateObject('v_club_rack', coords.x, coords.y, coords.z, true, true, false)
+    while not DoesEntityExist(entity) do Wait(10) end
+    FreezeEntityPosition(entity, true)
+    SetEntityCoords(entity, coords.x, coords.y, coords.z, false, false, false, false)
+    SetEntityHeading(entity, coords.w)
+    return entity
+end
+
+local function spawnBranch(coords)
+    local branchEnt = CreateObject('bkr_prop_weed_drying_01a', coords.x, coords.y, coords.z, true, true, false)
+    while not DoesEntityExist(branchEnt) do Wait(10) end
+    FreezeEntityPosition(branchEnt, true)
+    SetEntityCoords(branchEnt, coords.x, coords.y, coords.z, false, false, false, false)
+    SetEntityHeading(branchEnt, coords.w - 90.0)
+    return branchEnt
+end
+
 local function cachePlants()
     plants = {}
     local result = db.getAll()
@@ -91,6 +109,20 @@ local function init()
     cachePlants()
     Wait(1000)
     for i = 1, #plants do spawnPlant(plants[i]) end
+    racks = json.decode(GetResourceKvpString('weed_racks') or '[]')
+    for i = 1, #racks do
+        local entity = spawnRack(racks[i].coords)
+        racks[i].netId = NetworkGetNetworkIdFromEntity(entity)
+        for j = 1, 6 do
+            local branch = racks[i].branches[j]
+            if not branch then goto next end
+            local branchEnt = spawnBranch(branch.coords)
+            branch.netId = NetworkGetNetworkIdFromEntity(branchEnt)
+            ::next::
+        end
+        Entity(entity).state:set('citra_weed_rack', racks[i], true)
+    end
+    SetResourceKvp('weed_racks', '[]')
 end
 
 lib.callback.register('citra_weed:server:packageBranch', function(source, slot)
@@ -231,11 +263,7 @@ end)
 RegisterNetEvent('citra_weed:server:deploy', function(coords)
     local src = source --[[ @as integer ]]
     if #(GetEntityCoords(GetPlayerPed(src)) - coords.xyz) > 6.0 then return end
-    local entity = CreateObject('v_club_rack', coords.x, coords.y, coords.z, true, true, false)
-    while not DoesEntityExist(entity) do Wait(10) end
-    FreezeEntityPosition(entity, true)
-    SetEntityCoords(entity, coords.x, coords.y, coords.z, false, false, false, false)
-    SetEntityHeading(entity, coords.w)
+    local entity = spawnRack(coords)
     local rack = {
         netId = NetworkGetNetworkIdFromEntity(entity),
         coords = coords,
@@ -286,15 +314,13 @@ RegisterNetEvent('citra_weed:server:addBranch', function(netId, ind, slot)
     end
     exports.ox_inventory:RemoveItem(src, config.branchItem, 1, nil, item.slot)
     local coords = lib.callback.await('citra_weed:client:getOffset', src, netId, const.rackOffsets[ind])
-    local branchEnt = CreateObject('bkr_prop_weed_drying_01a', coords.x, coords.y, coords.z, true, true, false)
-    while not DoesEntityExist(branchEnt) do Wait(10) end
-    FreezeEntityPosition(branchEnt, true)
-    SetEntityCoords(branchEnt, coords.x, coords.y, coords.z, false, false, false, false)
-    SetEntityHeading(branchEnt, status.coords.w - 90.0)
+    coords = vector4(coords.x, coords.y, coords.z, status.coords.w - 90.0)
+    local branchEnt = spawnBranch(coords)
     status.branches[ind] = {
         dryness = item.metadata.dryness or 0,
         health = item.metadata.health,
         netId = NetworkGetNetworkIdFromEntity(branchEnt),
+        coords = coords,
     }
     Entity(entity).state:set('citra_weed_rack', status, true)
 end)
@@ -315,6 +341,7 @@ AddEventHandler('onResourceStop', function(resourceName)
         db.save(plants[i])
         deletePlant(plants[i])
     end
+    SetResourceKvp('weed_racks', json.encode(racks))
     for i = 1, #racks do
         local branches = racks[i].branches
         for j = 1, #branches do
