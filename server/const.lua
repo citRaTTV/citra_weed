@@ -1,5 +1,5 @@
 local config = require 'shared.config'
-local tickTime = 10
+local tickTime = 60
 
 return {
     tickTime = tickTime,
